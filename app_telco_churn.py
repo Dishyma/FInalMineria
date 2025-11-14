@@ -106,7 +106,3 @@ data_preparada.head()
 #Hacemos la predicción con la Red Neuronal
 Y_pred = model.predict(data_preparada)
 print(Y_pred)
-
-# Etiquetas originales con LabelEncoder
-y_labels = labelencoder.inverse_transform(Y_pred)
-print('Pred (No/Yes):', y_labels)
