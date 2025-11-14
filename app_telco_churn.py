@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt #gráfica
 #Cargamos el modelo
 import pickle
 filename = 'pipeline_telco_churn_final.pkl'
-model, variables, min_max_scaler, labelencoder = pickle.load(open(filename, 'rb'))
+model, variables, min_max_scaler, labelencoder = pickle.load(open(filename, 'rb')
 
 """#Cargamos el modelo"""
 
@@ -65,7 +65,8 @@ data = pd.DataFrame(datos, columns=[
     'Contract','PaperlessBilling','PaymentMethod'
 ])
 
-data
+
+st.dataframe(data)
 
 #Se realiza la preparación debe ser igual al aprendizaje
 # Dummies con drop_first=True para algunas, y completas para el resto
@@ -103,11 +104,42 @@ data_preparada.head()
 
 """# Predicciones"""
 
-#Hacemos la predicción con la Red Neuronal
-Y_pred = model.predict(data_preparada)
-print(Y_pred)
+# Predicciones en Streamlit
+st.subheader('Predicciones')
 
+if st.button('Predecir'):
+    try:
+        # Preparación (recomputada para asegurar consistencia)
+        df = data.copy()
+        # Dummies con drop_first=True
+        df = pd.get_dummies(
+            df,
+            columns=[c for c in ['SeniorCitizen', 'Dependents', 'PaperlessBilling'] if c in df.columns],
+            drop_first=True,
+            dtype=int
+        )
+        # Dummies completas
+        df = pd.get_dummies(
+            df,
+            columns=[c for c in ['InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaymentMethod'] if c in df.columns],
+            drop_first=False,
+            dtype=int
+        )
+        # Reindex y escalar
+        X = df.reindex(columns=variables, fill_value=0)
+        if 'tenure' in X.columns:
+            X[['tenure']] = min_max_scaler.transform(X[['tenure']])
 
-# Etiquetas originales con LabelEncoder
-y_labels = labelencoder.inverse_transform(Y_pred)
-print('Pred (No/Yes):', y_labels)
+        # Predicción
+        pred = model.predict(X)
+        st.write('Pred (0/1):', pred)
+        # Etiquetas originales
+        labels = labelencoder.inverse_transform(pred)
+        st.write('Pred (No/Yes):', labels)
+
+        # Probabilidades (si existen)
+        if hasattr(model, 'predict_proba'):
+            st.write('Probabilidades (No, Sí):')
+            st.write(model.predict_proba(X))
+    except Exception as e:
+        st.error(f'Error realizando la predicción: {e}')
