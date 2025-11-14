@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt #gráfica
 #Cargamos el modelo
 import pickle
 filename = 'pipeline_telco_churn_final.pkl'
-model, variables, min_max_scaler, labelcoder = pickle.load(open(filename, 'rb'))
+model, variables, min_max_scaler, labelencoder = pickle.load(open(filename, 'rb'))
 
 """#Cargamos el modelo"""
 
@@ -106,3 +106,8 @@ data_preparada.head()
 #Hacemos la predicción con la Red Neuronal
 Y_pred = model.predict(data_preparada)
 print(Y_pred)
+
+
+# Etiquetas originales con LabelEncoder
+y_labels = labelencoder.inverse_transform(Y_pred)
+print('Pred (No/Yes):', y_labels)
